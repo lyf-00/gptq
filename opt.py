@@ -417,8 +417,8 @@ if __name__ == '__main__':
         help='Whether to compute perplexity during benchmarking for verification.'
     )
     parser.add_argument(
-        '--new-eval', action='store_true',
-        help='Whether to use the new PTB and C4 eval.'
+        '--old-eval', action='store_true',
+        help='Whether to use the old PTB and C4 eval.'
     )
     parser.add_argument(
         '--faster-kernel', action='store_true',
@@ -461,10 +461,9 @@ if __name__ == '__main__':
             benchmark(model, input_ids, check=args.check)
     if args.load:
         exit()
-
-    datasets = ['wikitext2', 'ptb', 'c4'] 
-    if args.new_eval:
-      datasets = ['wikitext2', 'ptb-new', 'c4-new']
+    datasets = ['wikitext2', 'ptb-new', 'c4-new']
+    if args.old_eval:
+      datasets = ['wikitext2', 'ptb', 'c4'] 
     for dataset in datasets: 
         dataloader, testloader = get_loaders(
             dataset, seed=args.seed, model=args.model, seqlen=model.seqlen
@@ -473,5 +472,5 @@ if __name__ == '__main__':
         opt_eval(model, testloader, DEV)
 
     if args.save:
-        opt_pack3(model, quantizers)
+        # opt_pack3(model, quantizers)
         torch.save(model.state_dict(), args.save) 

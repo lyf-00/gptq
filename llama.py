@@ -284,7 +284,7 @@ if __name__ == '__main__':
         help='Save quantized checkpoint under this name.'
     )
     parser.add_argument(
-        '--new-eval', action='store_true',
+        '--old-eval', action='store_true',
         help='Whether to use the new PTB and C4 eval.'
     )
     parser.add_argument(
@@ -314,9 +314,10 @@ if __name__ == '__main__':
         quantizers = llama_sequential(model, dataloader, DEV)
         print(time.time() - tick)
 
-    datasets = ['wikitext2', 'ptb', 'c4'] 
-    if args.new_eval:
-        datasets = ['wikitext2', 'ptb-new', 'c4-new']
+    datasets = ['wikitext2', 'ptb-new', 'c4-new']
+    if args.old_eval:
+        datasets = ['wikitext2', 'ptb', 'c4']
+        
     for dataset in datasets:
         dataloader, testloader = get_loaders(
             dataset, seed=args.seed, model=args.model, seqlen=model.seqlen
@@ -325,6 +326,6 @@ if __name__ == '__main__':
         llama_eval(model, testloader, DEV)
 
     if args.save:
-        llama_pack3(model, quantizers)
+        # llama_pack3(model, quantizers)
         torch.save(model.state_dict(), args.save)
 
