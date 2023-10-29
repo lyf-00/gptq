@@ -1,4 +1,7 @@
 import time
+import json
+import os
+import pathlib
 
 import torch
 import torch.nn as nn
@@ -6,7 +9,10 @@ import torch.nn as nn
 from gptq import *
 from modelutils import *
 from quant import *
-
+from lm_eval_adaptor import LMEvalAdaptor
+from lm_eval import evaluator, tasks
+from accelerate import  infer_auto_device_map, dispatch_model
+from transformers import AutoTokenizer
 
 def get_opt(model):
     import torch
@@ -385,7 +391,7 @@ if __name__ == '__main__':
         help='Whether to run the RTN baseline.'
     ) 
     parser.add_argument(
-        '--wbits', type=int, default=16, choices=[2, 3, 4, 16],
+        '--wbits', type=int, default=16, choices=[1, 2, 3, 4, 16],
         help='#bits to use for quantization; use 16 for evaluating base model.'
     )
     parser.add_argument(
@@ -432,6 +438,10 @@ if __name__ == '__main__':
         '--static-groups', action='store_true',
         help='Whether to use static groups; recommended when using `--actorder` for more efficient inference.'
     )
+    parser.add_argument('--tasks',type=str,required=True)
+    parser.add_argument('--batch-size',type=int,default=1)
+    parser.add_argument('--num-fewshot',type=int,default=0)
+    parser.add_argument('--output-dir',type=str,required=True)
 
     args = parser.parse_args()
 
@@ -462,6 +472,34 @@ if __name__ == '__main__':
     if args.load:
         exit()
 
+    device_map = infer_auto_device_map(
+        model,
+        no_split_module_classes=[
+            "OPTDecoderLayer", "LlamaDecoderLayer", "BloomBlock", "MPTBlock", "DecoderLayer"],
+    )
+    model = dispatch_model(model, device_map=device_map)
+    for name, param in model.named_parameters():
+        print(f"Parameter name: {name}, Data type: {param.dtype}")
+    if args.tasks is not None:
+        enc = AutoTokenizer.from_pretrained(args.model, use_fast=False, trust_remote_code=True)
+        task_names = args.tasks.split(",")
+        lm_eval_model = LMEvalAdaptor(args.model, model, enc, args.batch_size)
+        results = evaluator.simple_evaluate(
+            model=lm_eval_model,
+            tasks=task_names,
+            batch_size=args.batch_size,
+            no_cache=True,
+            num_fewshot=args.num_fewshot,
+        )
+
+        print(evaluator.make_table(results))
+        pathlib.Path(args.output_dir).mkdir(exist_ok=True,parents=True)
+        output_path = os.path.join(args.output_dir,'QA_results.json')
+        results["config"]["model"] = args.model
+        # results["config"]["load_state_dict"] = args.load
+        with open(output_path, "w") as f:
+            json.dump(results, f, indent=2)
+
     datasets = ['wikitext2', 'ptb', 'c4'] 
     if args.new_eval:
       datasets = ['wikitext2', 'ptb-new', 'c4-new']
@@ -473,5 +511,5 @@ if __name__ == '__main__':
         opt_eval(model, testloader, DEV)
 
     if args.save:
-        opt_pack3(model, quantizers)
+        # opt_pack3(model, quantizers)
         torch.save(model.state_dict(), args.save) 

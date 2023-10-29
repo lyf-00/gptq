@@ -1,0 +1,32 @@
+{
+  "results": {
+    "piqa": {
+      "acc": 0.6294885745375408,
+      "acc_stderr": 0.011267826475447669,
+      "acc_norm": 0.6196953210010882,
+      "acc_norm_stderr": 0.011326620892570315
+    },
+    "hellaswag": {
+      "acc": 0.29177454690300736,
+      "acc_stderr": 0.004536500714147982,
+      "acc_norm": 0.31338378809002193,
+      "acc_norm_stderr": 0.004629209184813545
+    }
+  },
+  "versions": {
+    "piqa": 0,
+    "hellaswag": 0
+  },
+  "config": {
+    "model": "facebook/opt-125m",
+    "model_args": null,
+    "num_fewshot": 0,
+    "batch_size": 16,
+    "batch_sizes": [],
+    "device": null,
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": null
+  }
+}

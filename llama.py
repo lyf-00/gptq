@@ -1,12 +1,18 @@
 import time
-
+import json
+import os
+import pathlib
 import torch
 import torch.nn as nn
 
 from gptq import *
 from modelutils import *
 from quant import *
-
+from lm_eval_adaptor import LMEvalAdaptor
+from lm_eval import evaluator, tasks
+from accelerate import  infer_auto_device_map, dispatch_model
+from transformers import AutoTokenizer
+import mmlu
 
 def get_llama(model):
     import torch
@@ -299,6 +305,10 @@ if __name__ == '__main__':
         '--static-groups', action='store_true',
         help='Whether to use static groups; recommended when using `--actorder` for more efficient inference.'
     )
+    parser.add_argument('--tasks',type=str,required=True)
+    parser.add_argument('--batch-size',type=int,default=1)
+    parser.add_argument('--num-fewshot',type=int,default=0)
+    parser.add_argument('--output-dir',type=str,required=True)
 
     args = parser.parse_args()
 
@@ -314,6 +324,42 @@ if __name__ == '__main__':
         quantizers = llama_sequential(model, dataloader, DEV)
         print(time.time() - tick)
 
+    device_map = infer_auto_device_map(
+        model,
+        no_split_module_classes=[
+            "OPTDecoderLayer", "LlamaDecoderLayer", "BloomBlock", "MPTBlock", "DecoderLayer"],
+    )
+    model = dispatch_model(model, device_map=device_map)
+    for name, param in model.named_parameters():
+        print(f"Parameter name: {name}, Data type: {param.dtype}")
+    if args.tasks is not None:
+        if args.tasks == 'mmlu':
+            task_names = mmlu.create_all_tasks().keys()
+            result_file = 'MMLU_results.json'
+        else:
+            task_names = args.tasks.split(",")
+            result_file = 'QA_results.json'
+        enc = AutoTokenizer.from_pretrained(args.model, use_fast=False, trust_remote_code=True)
+        lm_eval_model = LMEvalAdaptor(args.model, model, enc, args.batch_size)
+        results = evaluator.simple_evaluate(
+            model=lm_eval_model,
+            tasks=task_names,
+            batch_size=args.batch_size,
+            no_cache=True,
+            num_fewshot=args.num_fewshot,
+        )
+
+        print(evaluator.make_table(results))
+        if args.tasks == 'mmlu':
+            results['average_acc'] = np.mean([v['acc'] for v in results['results'].values()])
+
+        pathlib.Path(args.output_dir).mkdir(exist_ok=True,parents=True)
+        output_path = os.path.join(args.output_dir,result_file)
+        results["config"]["model"] = args.model
+        # results["config"]["load_state_dict"] = args.load
+        with open(output_path, "w") as f:
+            json.dump(results, f, indent=2)
+
     datasets = ['wikitext2', 'ptb', 'c4'] 
     if args.new_eval:
         datasets = ['wikitext2', 'ptb-new', 'c4-new']
@@ -325,6 +371,6 @@ if __name__ == '__main__':
         llama_eval(model, testloader, DEV)
 
     if args.save:
-        llama_pack3(model, quantizers)
+        # llama_pack3(model, quantizers)
         torch.save(model.state_dict(), args.save)
 

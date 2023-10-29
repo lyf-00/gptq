@@ -1,0 +1,51 @@
+{
+  "results": {
+    "piqa": {
+      "acc": 0.5201305767138193,
+      "acc_stderr": 0.01165636541078037,
+      "acc_norm": 0.4885745375408052,
+      "acc_norm_stderr": 0.01166277802645167
+    },
+    "hellaswag": {
+      "acc": 0.25801633140808605,
+      "acc_stderr": 0.004366488167386391,
+      "acc_norm": 0.25323640709022105,
+      "acc_norm_stderr": 0.004339764434219063
+    },
+    "winogrande": {
+      "acc": 0.5169692186266772,
+      "acc_stderr": 0.014044390401612981
+    },
+    "arc_easy": {
+      "acc": 0.265993265993266,
+      "acc_stderr": 0.009066789565615692,
+      "acc_norm": 0.2647306397306397,
+      "acc_norm_stderr": 0.00905302108617397
+    },
+    "arc_challenge": {
+      "acc": 0.2098976109215017,
+      "acc_stderr": 0.011900548748047444,
+      "acc_norm": 0.25597269624573377,
+      "acc_norm_stderr": 0.012753013241244513
+    }
+  },
+  "versions": {
+    "piqa": 0,
+    "hellaswag": 0,
+    "winogrande": 0,
+    "arc_easy": 0,
+    "arc_challenge": 0
+  },
+  "config": {
+    "model": "facebook/opt-2.7b",
+    "model_args": null,
+    "num_fewshot": 0,
+    "batch_size": 16,
+    "batch_sizes": [],
+    "device": null,
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": null
+  }
+}
