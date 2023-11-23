@@ -42,7 +42,7 @@ models = ['opt-125m','opt-350m','opt-1.3b','opt-2.7b','opt-6.7b','opt-13b','opt-
 wbits = [4,3,2]
 dir_template = 'Experiments/{}-w{}-g128/'
 
-df = pd.DataFrame(columns=['model','wbit','wikitext2','ptb-new','c4-new','piqa','hellaswag','winogrande','arc_easy','arc_challenge'])
+df = pd.DataFrame(columns=['model','wbit','wikitext2','ptb-new','c4-new','piqa','hellaswag','winogrande','arc_easy','arc_challenge','mmlu_oi'])
 for model, wbit in itertools.product(models,wbits):
     if 'llama' in model:
         model = model.split('/')[-1]
@@ -64,9 +64,15 @@ for model, wbit in itertools.product(models,wbits):
         res += qa
     except:
         pass
+    try: 
+        with open(os.path.join(dir_path,'MMLU_OI','metrics.json'),'r') as f:
+            acc = json.load(f)["average_acc"]
+        res['mmlu_oi'] = acc
+    except:
+        pass
     # print(res)
     df_new = pd.DataFrame(res,index=[0])
     df = pd.concat([df,df_new])
     # print(df)
     # break
-df.to_csv('results.csv')
+df.to_csv('results_1121.csv')
