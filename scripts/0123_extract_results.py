@@ -65,9 +65,9 @@ for model, wbit in itertools.product(models,wbits):
     except:
         pass
     try: 
-        with open(os.path.join(dir_path,'MMLU_OI','metrics.json'),'r') as f:
+        with open(os.path.join(dir_path,'MMLU_results_lm_eval.json'),'r') as f:
             acc = json.load(f)["average_acc"]
-        res['mmlu_oi'] = acc
+        res['mmlu_lm_eval'] = acc
     except:
         pass
     # print(res)
