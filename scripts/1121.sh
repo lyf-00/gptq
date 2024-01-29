@@ -123,4 +123,8 @@ CUDA_VISIBLE_DEVICES=5 python eval-nlp/eval_LM.py     --model-name /home/v-liuyi
 CUDA_VISIBLE_DEVICES=5 python eval-nlp/eval_lm_eval.py     --model-name /home/v-liuyifei/llama2-hf/llama-2-13b     --load Experiments/llama-2-13b-w2-g128/qsd.pt     --batch-size 16     --output-dir Experiments/llama-2-13b-w2-g128
 CUDA_VISIBLE_DEVICES=5 python eval-nlp/eval_MMLU_oi.py     --model_name_or_path /home/v-liuyifei/llama2-hf/llama-2-13b     --load Experiments/llama-2-13b-w2-g128/qsd.pt     --save_dir Experiments/llama-2-13b-w2-g128/MMLU_OI     --eval_batch_size 1
 
+# 70b
+CUDA_VISIBLE_DEVICES=5 python llama.py meta-llama/Llama-2-70b-hf c4     --wbits 4     --groupsize 128     --true-sequential     --act-order     --save_pretrained Experiments/llama-2-70b-w4-g128/qpretrained/ >> Experiments/llama-2-70b-w4-g128/log.txt
+CUDA_VISIBLE_DEVICES=4 python llama.py meta-llama/Llama-2-70b-hf c4     --wbits 3     --groupsize 128     --true-sequential     --act-order     --save_pretrained Experiments/llama-2-70b-w3-g128/qpretrained/ >> Experiments/llama-2-70b-w3-g128/log.txt
+CUDA_VISIBLE_DEVICES=3 python llama.py meta-llama/Llama-2-70b-hf c4     --wbits 2     --groupsize 128     --true-sequential     --act-order     --save_pretrained Experiments/llama-2-70b-w2-g128/qpretrained/ >> Experiments/llama-2-70b-w2-g128/log.txt
 

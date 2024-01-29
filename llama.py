@@ -284,6 +284,9 @@ if __name__ == '__main__':
         help='Save quantized checkpoint under this name.'
     )
     parser.add_argument(
+        '--save_pretrained', type=str, default='',
+    )
+    parser.add_argument(
         '--old-eval', action='store_true',
         help='Whether to use the new PTB and C4 eval.'
     )
@@ -328,4 +331,6 @@ if __name__ == '__main__':
     if args.save:
         # llama_pack3(model, quantizers)
         torch.save(model.state_dict(), args.save)
+    if args.save_pretrained:
+        model.save_pretrained(args.save_pretrained)
 
